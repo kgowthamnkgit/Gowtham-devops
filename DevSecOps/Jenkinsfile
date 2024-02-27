@@ -1,0 +1,52 @@
+pipeline{
+    agent any
+    environment{
+        SONAR_HOME= tool "Sonar"
+    }
+    stages{
+        stage("Code Checkout"){
+            steps{
+                git url:"https://github.com/kgowthamnkgit/Gowtham-devops.git", branch:"main"
+            }
+        }        
+        
+        stage("Docker Code Build"){
+            steps{
+                sh "docker build -t nodeapp ."
+            }
+        }
+        
+        stage("Docker Code Scan: Trivy"){
+            steps{
+                sh "trivy image nodeapp"
+            }
+        }
+        
+        stage("Docker Build Push: DockerHub"){
+            steps{
+              withCredentials([usernamePassword(credentialsId:"DockerCred",passwordVariable:"dockerhub@123",usernameVariable:"kgowthamnk")]){
+                  sh "docker logout"
+                  sh "docker login -u ${env.dockerhubname} -p ${env.dockerhubpass}"
+                }
+            }
+        }
+        
+        stage("Docker Tag"){
+            steps{
+                sh "docker tag nodeapp:latest gowtham/nodeapp:latest"
+            }
+        }
+        
+        stage("Code Push to DockerHub"){
+            steps{
+                sh "docker push gowtham/nodeapp:latest"
+            }
+        }
+        
+        stage("Code Deploy"){
+            steps{    
+                sh "docker-compose down && docker-compose up -d"
+            }
+        }
+    }
+}
