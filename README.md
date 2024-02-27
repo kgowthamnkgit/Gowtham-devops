@@ -1,7 +1,5 @@
 # Gowtham-devops
-
 # node-todo-cicd
-
  Run these commands:
 
  mkdir Development
